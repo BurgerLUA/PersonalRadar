@@ -6,13 +6,10 @@ local PlayerSize = 16 * 2
 local BaseX = ScrW()
 local BaseY = ScrH() * 0.8
 
-
 local RadarMat = Material("sprites/radar_trans")
 local PlayerMat = Material("sprites/player_blue_small")
 local TargetMat = Material("sprites/player_red_small")
 local DeadTargetMat = Material("sprites/player_red_dead")
-
-
 
 function PRDrawRadar()
 
@@ -21,7 +18,7 @@ function PRDrawRadar()
 
 	PRDrawOverlay(RadarMat,COLOR_WHITE,RadarPosX,RadarPosY,RadarSize,0)
 	
-	if (LocalPlayer():GetVelocity():Length() > 110) or (LocalPlayer():IsOnGround() == false) then
+	if PRShouldHide(LocalPlayer()) then
 		PRDrawOverlay(PlayerMat,COLOR_WHITE,RadarPosX,RadarPosY,PlayerSize,0)
 	end
 	
@@ -43,7 +40,7 @@ function PRDrawRadar()
 				local DistanceMod = LocalXYMod:Distance(EnemyXYMod)
 				local HeightMod = (EnemyZMod - LocalZMod).z
 			
-				if (v:GetVelocity():Length() > 110) or (v:IsOnGround() == false) or (v:Alive() == false) then
+				if PRShouldHide(v) then
 					local FinalPos, FinalAng = WorldToLocal(EnemyXYMod,v:GetAngles(),LocalXYMod,LocalPlayer():GetAngles() + Angle(0,90,0))
 					FinalPos = FinalPos * 0.1
 					
@@ -64,12 +61,18 @@ end
 
 hook.Add("HUDPaint","PR: HUDPaint",PRDrawRadar)
 
-function PRDrawOverlay(material,color,x,y,size,rot)
+function PRShouldHide(ply)
+	if (ply:GetVelocity():Length() > 110) or (ply:IsOnGround() == false) or (ply:Alive() == false) then
+		return true
+	else
+		return false
+	end
+end
 
+function PRDrawOverlay(material,color,x,y,size,rot)
 	surface.SetMaterial(material)
 	surface.SetDrawColor(color)
 	surface.DrawTexturedRectRotated(x,y,size,size,rot)
-
 end
 
 function ScreenClamp(pos,size,screen)

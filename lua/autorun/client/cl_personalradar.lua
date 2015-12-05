@@ -18,7 +18,7 @@ function PRDrawRadar()
 
 	PRDrawOverlay(RadarMat,COLOR_WHITE,RadarPosX,RadarPosY,RadarSize,0)
 	
-	if PRShouldHide(LocalPlayer()) then
+	if PRShouldShow(LocalPlayer()) then
 		PRDrawOverlay(PlayerMat,COLOR_WHITE,RadarPosX,RadarPosY,PlayerSize,0)
 	end
 	
@@ -40,7 +40,7 @@ function PRDrawRadar()
 				local DistanceMod = LocalXYMod:Distance(EnemyXYMod)
 				local HeightMod = (EnemyZMod - LocalZMod).z
 			
-				if PRShouldHide(v) then
+				if PRShouldShow(v) then
 					local FinalPos, FinalAng = WorldToLocal(EnemyXYMod,v:GetAngles(),LocalXYMod,LocalPlayer():GetAngles() + Angle(0,90,0))
 					FinalPos = FinalPos * 0.1
 					
@@ -61,12 +61,23 @@ end
 
 hook.Add("HUDPaint","PR: HUDPaint",PRDrawRadar)
 
-function PRShouldHide(ply)
-	if (ply:GetVelocity():Length() > 110) or (ply:IsOnGround() == false) or (ply:Alive() == false) then
+function PRShouldShow(ply)
+
+	local IsInSensor = false
+	
+	for k,v in pairs(ents.FindByClass("ent_bur_sensor")) do
+		local Distance = ply:GetPos():Distance(v:GetPos())
+		if Distance <= 200 then
+			IsInSensor = true
+		end
+	end
+
+	if (ply:GetVelocity():Length() > 110) or (ply:IsOnGround() == false) or (ply:Alive() == false) or (IsInSensor == true) then
 		return true
 	else
 		return false
 	end
+	
 end
 
 function PRDrawOverlay(material,color,x,y,size,rot)
